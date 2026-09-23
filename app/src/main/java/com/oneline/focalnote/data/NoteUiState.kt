@@ -5,6 +5,7 @@ import androidx.compose.ui.text.font.FontFamily
 
 data class NoteUiState(
     val text: String = "",
-    val fontFamily: String = "Sans",
-    val backgroundColor: Long = Color.White.value.toLong()
+    val category: String = "",
+    val isStarred: Boolean = false,
+    val isPinned: Boolean = false,
 )

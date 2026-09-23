@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity("notes")
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long,
+    val id: Long = 0,
     val text: String,
     val category: String,
     val timestamp: Long = System.currentTimeMillis(),
