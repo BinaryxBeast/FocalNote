@@ -64,13 +64,10 @@ fun QuickCaptureScreen(
         containerColor = Color.White,
         bottomBar = {
             NoteBottomBar(
-                "5:39",
-                {
-                    viewModel.updateFont()
-                    FontType.DEFAULT
-                },
-                {},
-                {}
+                lastEdited = "5:39",
+                onFontClick = { viewModel.updateFont() },
+                onPaletteClick = {},
+                onSwitchCategoryClick = onEditClick
             )
         }
     ) { innerPadding ->
@@ -81,49 +78,81 @@ fun QuickCaptureScreen(
                 .imePadding(),
             contentAlignment = Alignment.Center
         ) {
+            val currentText = uiState.text.ifEmpty { inputText }
+            val fontFamily = uiState.fontType.toFontFamily()
+            val words = currentText.split(Regex("\\s+"))
+
             val maxWidthPx = constraints.maxWidth
             val maxHeightPx = constraints.maxHeight
 
-            val safeMaxWidthPx = maxWidthPx - 20
+            val horizontalPaddingPx = 40
+            val verticalPaddingPx = 40
 
-            var dynamicFontSize = 500.sp
-            val minFontSize = 18.sp
-            val currentText = uiState.text.ifEmpty { inputText }
-            val words = currentText.split(" ")
+            val safeMaxWidthPx = maxWidthPx - horizontalPaddingPx
+            val safeMaxHeightPx = maxHeightPx - verticalPaddingPx
 
-            val fontFamily = uiState.fontType.toFontFamily()
-            while (dynamicFontSize > minFontSize) {
+            val minFontSize = 18f
+            val maxFontSize = 500f
+
+            var low = minFontSize
+            var high = maxFontSize
+            var dynamicFontSize = minFontSize.sp
+
+            while (low <= high) {
+
+                val mid = (low + high) / 2f
+                val candidateSize = mid.sp
+
+                val style = TextStyle(
+                    fontSize = candidateSize,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = candidateSize * 1.1f,
+                    fontFamily = fontFamily
+                )
 
                 val measuredText = textMeasurer.measure(
                     text = currentText.ifEmpty { " " },
-                    style = TextStyle(
-                        fontSize = dynamicFontSize,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = dynamicFontSize * 1.1f,
-                        fontFamily = fontFamily
-                    ),
-                    constraints = Constraints(maxWidth = safeMaxWidthPx)
+                    style = style,
+                    constraints = Constraints(
+                        maxWidth = safeMaxWidthPx
+                    )
                 )
 
                 val hasWordOverflow = words.any { word ->
-                    textMeasurer.measure(
-                        text = word,
-                        style = TextStyle(
-                            fontSize = dynamicFontSize,
-                            fontWeight = FontWeight.Bold
+                    if (word.isEmpty()) {
+                        false
+                    } else {
+                        val measuredWord = textMeasurer.measure(
+                            text = word,
+                            style = style
                         )
-                    ).size.width > safeMaxWidthPx
+
+                        measuredWord.size.width > safeMaxWidthPx
+                    }
                 }
 
-                if (measuredText.size.height <= maxHeightPx && !measuredText.hasVisualOverflow && !hasWordOverflow) {
-                    break
+                val hasVisualOverflow =
+                    measuredText.didOverflowWidth || measuredText.didOverflowHeight
+
+                val fits =
+                    measuredText.size.height <= maxHeightPx &&
+                            !hasVisualOverflow &&
+                            !hasWordOverflow
+
+                if (fits) {
+                    dynamicFontSize = candidateSize
+                    low = mid + 0.5f
+                } else {
+                    high = mid - 0.5f
                 }
-                dynamicFontSize = (dynamicFontSize.value * 0.95f).sp
             }
 
             BasicTextField(
-                value = uiState.text,
-                onValueChange = viewModel::updateText,
+                value = uiState.text.ifEmpty { inputText },
+                onValueChange = { newText ->
+                    viewModel.updateText(newText)
+                    onTextChange(newText)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
