@@ -29,6 +29,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.room.Room
+import com.oneline.focalnote.data.FontType
 import com.oneline.focalnote.data.NoteDataBase
 import com.oneline.focalnote.repository.NoteRepository
 import com.oneline.focalnote.viewmodel.NoteViewModel
@@ -64,7 +65,10 @@ fun QuickCaptureScreen(
         bottomBar = {
             NoteBottomBar(
                 "5:39",
-                {},
+                {
+                    viewModel.updateFont()
+                    FontType.DEFAULT
+                },
                 {},
                 {}
             )
@@ -87,6 +91,7 @@ fun QuickCaptureScreen(
             val currentText = uiState.text.ifEmpty { inputText }
             val words = currentText.split(" ")
 
+            val fontFamily = uiState.fontType.toFontFamily()
             while (dynamicFontSize > minFontSize) {
 
                 val measuredText = textMeasurer.measure(
@@ -94,7 +99,8 @@ fun QuickCaptureScreen(
                     style = TextStyle(
                         fontSize = dynamicFontSize,
                         fontWeight = FontWeight.Bold,
-                        lineHeight = dynamicFontSize * 1.1f
+                        lineHeight = dynamicFontSize * 1.1f,
+                        fontFamily = fontFamily
                     ),
                     constraints = Constraints(maxWidth = safeMaxWidthPx)
                 )
@@ -126,7 +132,8 @@ fun QuickCaptureScreen(
                     textAlign = TextAlign.Left,
                     fontWeight = FontWeight.Bold,
                     lineHeight = dynamicFontSize * 1.1f,
-                    color = Color.Black
+                    color = Color.Black,
+                    fontFamily = fontFamily
                 ),
                 cursorBrush = SolidColor(Color(0xFF1976D2))
             )

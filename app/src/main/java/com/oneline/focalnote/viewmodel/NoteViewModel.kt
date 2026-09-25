@@ -1,9 +1,12 @@
 package com.oneline.focalnote.viewmodel
 
+import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.oneline.focalnote.data.FontType
 import com.oneline.focalnote.data.NoteEntity
 import com.oneline.focalnote.data.NoteUiState
+
 import com.oneline.focalnote.repository.NoteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +42,11 @@ class NoteViewModel(
             it.copy(isPinned = !it.isPinned)
         }
     }
+    fun updateFont(){
+        _uiState.update {
+            it.copy(fontType= it.fontType.next())
+        }
+    }
 
     fun saveNote(){
         viewModelScope.launch {
@@ -47,11 +55,14 @@ class NoteViewModel(
             val note = NoteEntity(
                 text = state.text,
                 category = state.category,
-                isStarred = state.isPinned,
-                isPinned = state.isPinned
+                isStarred = state.isStarred,
+                isPinned = state.isPinned,
+                fontType = "DEFAULT"
             )
 
             repository.insertNote(note)
         }
+
+
     }
 }

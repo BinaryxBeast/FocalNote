@@ -1,5 +1,6 @@
 package com.oneline.focalnote.data
 
+import androidx.compose.ui.text.font.FontFamily
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,6 +12,7 @@ data class NoteEntity(
     val category: String,
     val timestamp: Long = System.currentTimeMillis(),
     val isStarred: Boolean,
-    val isPinned: Boolean
+    val isPinned: Boolean,
+    val fontType: String = "DEFAULT"
 ) {
 }
